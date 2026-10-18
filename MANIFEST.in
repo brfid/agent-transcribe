@@ -1,0 +1,4 @@
+include LICENSE README.md AGENTS.md STATUS.md process.py
+recursive-include docs *.md
+recursive-include scripts *.sh
+recursive-include tests *.py

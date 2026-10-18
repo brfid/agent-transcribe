@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.DS_Store
+.env
+.env.*
+*.local.json
+.processing*
+.filing*
+.stage-*/
+.intake/
+models/
+originals/
+processed/
