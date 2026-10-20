@@ -5,8 +5,7 @@ task. Archive-local instructions and records own source scope, destinations,
 descriptive evidence, progress and next action. Read them before processing.
 
 Follow the complete [agent protocol](docs/agents.md) for economical delegation,
-write ownership, review and handoff. It specifies GPT-6 Luna for clear assignments
-whose likely errors and important omissions can be checked.
+bounded assignments, write ownership, independent review and handoff.
 
 Keep originals, derivatives, receipts, private metadata and credentials outside
 Git. Use synthetic fixtures. Preserve originals and accepted text; a software

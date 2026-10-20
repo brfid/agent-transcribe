@@ -29,21 +29,17 @@ checkpoint and explicitly hand it over first.
 
 ## Economical delegation
 
-Spawn proactively at any reasoning level only when the speed or quality benefit
-exceeds coordination and verification cost. Budget the whole workflow: context
-transfer, duplicate reading, tool use, worker time, review, and integration can
-outweigh a cheaper model call. Use the lowest-cost capable model and available
-reasoning effort that meets the quality bar.
+Spawn proactively only when the speed or quality benefit exceeds coordination
+and verification cost. Budget the whole workflow: context transfer, duplicate
+reading, tool use, worker time, review, and integration can outweigh the benefit
+of delegation. Model selection and reasoning effort follow the user's universal
+instructions and settings.
 
-When the lead uses a frontier model, consider a balanced helper for judgment
-that can be independently assessed. With either a frontier or balanced lead,
-consider GPT-6 Luna (Luna6) at an appropriate available reasoning effort for clear
-assignments whose likely errors and important omissions can be checked. Examples
-include an exact-list inventory, locator audit, receipt comparison, or synthetic
-test adaptation. Use a stronger model or escalate when ambiguity, consequence,
-or hard-to-detect omissions make that check inadequate. The lead verifies in
-proportion to risk and remains responsible for the final result. These roles
-are portable orchestration choices, not CLI/model/API requirements.
+Delegate clear assignments whose likely errors and important omissions can be
+checked. Examples include an exact-list inventory, locator audit, receipt
+comparison, or synthetic test adaptation. Escalate to the lead when ambiguity,
+consequence, or hard-to-detect omissions make that check inadequate. The lead
+verifies in proportion to risk and remains responsible for the final result.
 
 Prefer deterministic scripts for bulk mechanical work such as hashes, counts,
 path checks, and schema comparisons. Give each helper small task-specific
@@ -57,14 +53,14 @@ are part of the workflow.
 
 Efficiency never justifies less source coverage, weaker provenance, invented
 evidence, or skipped required review. Repeated agent agreement and repeated
-exports are not independent historical evidence. If a smaller model's quality
-is uncertain, compare candidate models on the same bounded inputs and retain
-the lightest one that passes the required checks. This follows official OpenAI
-[model-selection guidance](https://developers.openai.com/api/docs/guides/model-selection).
+exports are not independent historical evidence. If a worker's output quality
+is uncertain, review a small bounded pilot against the required checks before
+extending the assignment.
+
 Separating stable instructions from dynamic context and versioning reusable
 prompts follows official [prompting guidance](https://developers.openai.com/api/docs/guides/prompting).
-The source lists, archival verification gates, Luna6 choice, and local CLI design
-are project policies; those pages do not require this package or an SDK.
+The source lists, archival verification gates, and local CLI design are project
+policies; those pages do not require this package or an SDK.
 
 ## Work order
 
