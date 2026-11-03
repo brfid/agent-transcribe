@@ -1,4 +1,4 @@
-include LICENSE README.md AGENTS.md STATUS.md process.py
+include LICENSE README.md AGENTS.md STATUS.md process.py requirements-convert.lock
 recursive-include docs *.md
 recursive-include scripts *.sh
 recursive-include tests *.py

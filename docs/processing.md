@@ -1,5 +1,10 @@
 # Extracting scan text
 
+This guide documents the accepted compatibility `scan` path. Use the
+[conversion candidate](conversion.md) for new folder/plan conversion with
+automatic bounded recovery. Archive records own the exact authorized scope
+for either route.
+
 `scan` extracts only an explicit ordered source set. It does not identify or file
 documents. Follow the [workflow](workflow.md) for the complete processing request.
 Use a separate derivative folder; keep originals intact.

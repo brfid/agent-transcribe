@@ -58,10 +58,10 @@ class ScanCommand(unittest.TestCase):
         return self.command("file", "--assignments", recipe, "--output", self.destination,
                             "--source-root", self.originals, "--text-root", self.job, expected=expected)
 
-    def test_help_advertises_scan_file_reconcile_check_reading_and_excludes_audio(self):
+    def test_help_advertises_conversion_and_legacy_commands_and_excludes_audio(self):
         result = subprocess.run([sys.executable, RUNNER, "--help"], capture_output=True)
         self.assertEqual(result.returncode, 0)
-        self.assertIn(b"{scan,file,reconcile,check,reading}", result.stdout)
+        self.assertIn(b"{scan,file,reconcile,check,reading,convert,plan,verify}", result.stdout)
         self.assertNotIn(b"audio", result.stdout)
 
     def test_audio_mode_is_rejected_before_processing(self):

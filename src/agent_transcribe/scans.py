@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import time
+import warnings
 import xml.etree.ElementTree as ET
 import zipfile
 from urllib.parse import quote
@@ -20,6 +21,83 @@ OCR_PSM = 3
 
 class ExtractionError(RuntimeError):
     """An independent source could not produce discovery text."""
+
+
+class TiffSafetyError(ExtractionError):
+    """Legacy extraction cannot prove coverage of this original's TIFF frames."""
+
+    def __init__(self, message, inventory):
+        super().__init__(message)
+        self.inventory = inventory
+
+
+def tiff_frame_inventory(source, rotate_clockwise=0):
+    """Inspect every directory, without decoding/rewriting or deduplicating frames.
+
+    Legacy text/TSV/PDF outputs do not establish frame identity. Until the new
+    converter provides that contract, multipage TIFFs must fail closed, even
+    when no transform was requested or a previous job says the source is done.
+    """
+    if source.suffix.lower() not in IMAGE_SUFFIXES:
+        return None
+    from PIL import Image
+    inventory = {"schema": 1, "expected_frame_ids": None, "frames": [],
+                 "produced_frame_ids": [], "gap_frame_ids": None,
+                 "count_known": False, "coverage_complete": False,
+                 "rotate_clockwise": rotate_clockwise}
+    is_tiff = source.suffix.lower() in {".tif", ".tiff"}
+    diagnostics = []
+    try:
+        with warnings.catch_warnings(record=True) as diagnostics:
+            warnings.simplefilter("always")
+            with Image.open(source) as image:
+                if image.format != "TIFF":
+                    return None
+                is_tiff = True
+                count = image.n_frames
+                if not isinstance(count, int) or count < 1:
+                    raise ValueError("TIFF frame count is invalid")
+                inventory.update(count_known=True, expected_frame_ids=list(range(1, count + 1)),
+                                 gap_frame_ids=list(range(1, count + 1)))
+                for frame_id in inventory["expected_frame_ids"]:
+                    frame = {"frame_id": frame_id}
+                    try:
+                        image.seek(frame_id - 1)
+                        frame["dimensions"] = list(image.size)
+                        frame["exif_orientation"] = image.getexif().get(274, 1)
+                        if frame["exif_orientation"] not in range(1, 9):
+                            raise ValueError("Invalid TIFF EXIF orientation")
+                    except (OSError, ValueError, RuntimeError, SyntaxError, EOFError, TypeError) as exc:
+                        if isinstance(exc, OSError) and exc.errno in (errno.ENOSPC, errno.EDQUOT):
+                            raise
+                        frame["metadata_error"] = str(exc)
+                    inventory["frames"].append(frame)
+    except (OSError, ValueError, RuntimeError, SyntaxError, EOFError, TypeError) as exc:
+        # A recognized TIFF with unreadable directories has unknown coverage.
+        # Other image decode failures retain normal extraction error handling.
+        if (not is_tiff or isinstance(exc, OSError) and exc.errno in (errno.ENOSPC, errno.EDQUOT)):
+            raise
+        inventory.update(count_known=False, inventory_error=str(exc))
+    if diagnostics:
+        # Pillow can return a readable prefix after warning about a broken IFD
+        # chain. Such a prefix is not proof of the original's total frame count.
+        inventory["inventory_warnings"] = [str(item.message) for item in diagnostics]
+        inventory["discovered_frame_ids"] = [frame["frame_id"] for frame in inventory["frames"]]
+        inventory.update(count_known=False, expected_frame_ids=None)
+    return inventory
+
+
+def require_legacy_tiff_coverage(inventory):
+    if inventory is None:
+        return
+    expected = inventory["expected_frame_ids"]
+    if (not inventory["count_known"] or len(expected) != 1
+            or any("metadata_error" in frame for frame in inventory["frames"])):
+        ids = ", ".join(map(str, expected)) if expected is not None else "unknown"
+        raise TiffSafetyError(
+            "Legacy TIFF extraction/reuse cannot prove complete frame coverage; "
+            f"expected TIFF frame IDs: {ids}; all remain gaps. "
+            "Original and existing text retained; use a new frame-aware conversion.", inventory)
 
 
 def page_output_prefix(source_key):
@@ -196,6 +274,7 @@ def extract_page(source, temporary, make_pdf=False, *, psm=OCR_PSM, rotate_clock
     text, pdf, notes = temporary / "page.txt", None, []
     suffix = source.suffix.lower()
     if suffix in IMAGE_SUFFIXES:
+        require_legacy_tiff_coverage(tiff_frame_inventory(source, rotate_clockwise))
         from PIL import Image, ImageOps
         with Image.open(source) as image:
             ocr_input = source
@@ -264,9 +343,18 @@ def publish_partial_view(current, sources, failures, step_key, text_path, source
         if failure:
             label = "SOURCE UNAVAILABLE" if failure["stage"] == "intake" else "EXTRACTION FAILED"
             parts.append(f"[{label}: {failure['error']}]\n")
+            frames = failure.get("tiff_frames")
+            if frames:
+                for frame_id in frames["gap_frame_ids"] or []:
+                    parts.append(f"[TIFF frame {frame_id}: NO VERIFIED FRAME-MAPPED TEXT]\n")
+                if not frames["count_known"]:
+                    parts.append("[TIFF FRAME COUNT UNKNOWN: coverage incomplete]\n")
         if current.completed(step_key(source)):
             if failure:
-                parts.append("[SAVED TEXT BELOW: output hash verified; original unavailable for current verification.]\n")
+                if failure.get("tiff_frames"):
+                    parts.append("[SAVED LEGACY TEXT BELOW: output hash verified; TIFF frame coverage unproven.]\n")
+                else:
+                    parts.append("[SAVED TEXT BELOW: output hash verified; original unavailable for current verification.]\n")
             text = (current.folder / text_path(source)).read_text()
             if source.suffix.lower() == ".pdf":
                 for i, page in enumerate(pdf_pages(text), 1):
@@ -343,6 +431,35 @@ def process(args):
                     results.append(current.step(step_key(source), None))  # Verify saved text even without fresh source access.
                 failures.append({"source": str(source), "stage": "intake", "error": intake_error["error"]})
                 continue
+            # This guard precedes Job.step: both done and prepared legacy
+            # checkpoints otherwise bypass the extractor entirely.
+            inventory = None
+            try:
+                inventory = tiff_frame_inventory(source, rotate)
+                if inventory is not None:
+                    current.state.setdefault("tiff_safety", {})[source_key(source)] = inventory
+                    current.save()
+                    require_legacy_tiff_coverage(inventory)
+            except (OSError, ValueError, RuntimeError, SyntaxError) as exc:
+                if (isinstance(exc, IntegrityError)
+                        or isinstance(exc, OSError) and exc.errno in (errno.ENOSPC, errno.EDQUOT)):
+                    raise
+                if current.completed(step_key(source)):
+                    current.step(step_key(source), None)  # Verify retained bytes; never accept coverage.
+                elif current.state["steps"].get(step_key(source), {}).get("prepared_outputs"):
+                    current.prepared_files(current.state["steps"][step_key(source)])
+                if inventory is not None:
+                    current.state.setdefault("current_reading", {})["partial"] = True
+                    current.save()
+                if not best_effort:
+                    if isinstance(exc, ExtractionError):
+                        raise
+                    raise ExtractionError(str(exc)) from exc
+                failure = {"source": str(source), "stage": "extraction", "error": str(exc)}
+                if inventory is not None:
+                    failure["tiff_frames"] = inventory
+                failures.append(failure)
+                continue
             def build_page(tmp, source=source):
                 record = reuse.get(str(source))
                 notes, retained = [], None
@@ -414,6 +531,9 @@ def process(args):
                     raise ExtractionError(str(exc)) from exc
             try:
                 results.append(current.step(step_key(source), build))
+                if inventory is not None:
+                    inventory.update(produced_frame_ids=[1], gap_frame_ids=[], coverage_complete=True)
+                    current.save()
             except ExtractionError as exc:
                 if not best_effort:
                     raise
@@ -488,7 +608,8 @@ def process(args):
                 "text_gaps": [{"source": str(current.source_path(r["source"])), "blank_text": r["blank_text"],
                                "blank_pdf_pages": r.get("blank_pdf_pages", [])} for r in results
                               if r["blank_text"] or r.get("blank_pdf_pages")],
-                "failures": failures, "output": str(current.folder),
+                "failures": failures, "tiff_frames": current.state.get("tiff_safety", {}),
+                "output": str(current.folder),
                 "source_root": str(source_root),
                 "timings": current.state.get("timings", {}),
                 "partial_text": str(partial_text) if partial_text else None,

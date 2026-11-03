@@ -11,21 +11,38 @@ reusable sequence. An authorized scan-processing batch includes descriptive
 filing in the same run unless the user explicitly requests a narrower task.
 Availability of this workflow does not authorize processing another collection.
 
+## Choose the route
+
+Use the local [conversion candidate](conversion.md) for new folder conversion:
+metadata-only selection, then authorized `convert`, followed by `verify` on the
+portable bundle. It handles provisional organization, page/frame assets,
+structured exports, bounded recovery and publication without a separate manual
+assignment recipe. An existing accepted reading stays preferred when its
+hash-pinned provenance is imported with `--reuse-from`.
+
+Use `scan`, `file`, `check`, `reading` and `reconcile` for existing accepted
+legacy work and explicitly requested compatibility tasks. Keep accepted source
+membership and readings intact. Neither installation nor planning authorizes
+source migration, deletion or archive-wide execution. The consolidated runner
+executes only the exact sources of ready jobs and respects prerequisites.
+
 ## Declare and prepare
 
 Read the archive root instructions/index, then the selected collection status,
-plans, READMEs, existing indexes/manifests, and review queue. Resume pending filing
-before new extraction. For a new collection, record its exact scope, source order,
+plans, READMEs, existing indexes/manifests, and review queue. Resolve recorded
+pending filing/dependencies before starting a dependent conversion scope.
+For a new collection, record its exact scope, source order,
 separate derivative destination, naming choices, and restart point; link that
 status from the archive root index. Keep source and derivative destinations apart.
 
 Declare the purpose, exact ordered source list, derivative destination, stopping
-point, any open-document handoff, and next source before running. A useful initial
-photo discovery batch is 50–100 consecutive captures; reduce it for difficult
-material or a short session. Select whole PDFs explicitly. A page-limited task
-must use existing page text or an explicitly recorded range derivative because
-`scan` has no PDF page-range option. Reserve time for filing, checks, and closeout
-within the original deadline.
+point, any open-document handoff, and next source before running. A folder plan
+freezes the selected paths; use an exact source list for a
+bounded ordered subset and explicit exclusions for derivatives/context. Select
+whole PDFs for folder conversion. Legacy `scan` has no PDF page-range option;
+a page-limited compatibility task needs existing page text or an explicitly
+recorded range derivative. Reserve time for verification and closeout within
+the original deadline.
 
 Exclude organized copies, retained jobs, tool directories, hidden/bookkeeping
 files, plans, receipts, and indexes from original-source selection. Metadata
@@ -41,11 +58,13 @@ metadata, enclosures, contextual images, alternate captures, and duplicates.
 
 ## Extract and identify
 
-Use [scan](processing.md) to reuse adequate retained text before fresh OCR. Keep
-successful text and partial views when individual sources fail. Report blank
-text/pages and failures separately from extraction completion. One targeted image
-retry may help a visibly rotated or sparse page; preserve both variants and the
-reason for choosing a reading. Never invent text to fill a gap.
+Use [convert](conversion.md) for the authorized frozen folder or ready archive
+plan. It retains accepted readings, independently counts/renders physical units,
+and tries its finite local recovery policy automatically. Keep successful text
+and partial views when individual units/sources fail. Report blank text/pages
+and failures separately from completion. `--retry-failed` adds another bounded
+attempt while preserving accepted bytes. For compatibility `scan`, follow its
+[reuse and targeted retry guide](processing.md). Never invent text to fill a gap.
 
 Inspect originals for decisive titles, dates, boundaries, continuation evidence,
 and relationships. Separate printed titles from supplied descriptions. Photograph
@@ -60,9 +79,20 @@ A readable original still gets a named copy if recognition failed. Keep repeated
 captures as distinct captures and identify their relationship without presenting
 them as independent corroboration.
 
-## File and check
+## Publish and check
 
-Use the collection's naming convention. A generic folder may be
+Conversion publishes a standalone bundle with byte-identical originals, readable
+items, page/frame images, native Docling outputs when available, source maps,
+accepted-reading provenance, and explicit gaps. Existing organization supplies
+browse links; uncertain historical identity stays provisional. A new conversion
+does not require preparing descriptive assignments first. Run `verify BUNDLE`,
+then independently check original identity, expected-unit accounting, links and
+the claimed review scope. Recognition accuracy still requires original inspection.
+
+### Existing legacy filing
+
+For an authorized legacy `file` operation, use the collection's naming convention.
+A generic folder may be
 `Subject or title - Identifier or part - Supported date`; omit unsupported parts.
 New copies use `Description - scan NNNN - Full original filename.ext`, retaining
 the full original filename verbatim at the end, including date/time. The stable
@@ -85,7 +115,8 @@ combined text follows filing order. Keep old flat layouts stable. PDFs retain th
 full byte-identical source copy and one-based physical-page locators; any item or
 range derivative is additional and identifies its exact source pages.
 
-Run `check --verify-sources` on the affected folders. Independently verify source
+Run `check --verify-sources` on the affected legacy document folders.
+Independently verify source
 coverage, hashes/metadata of copies, original filename suffixes, page/source order,
 readable text, gaps, and the claimed review scope. Resolve questions in existing
 review queues and plans when evidence warrants it. Use [reconcile](reconciliation.md)
@@ -94,8 +125,10 @@ managed membership, or receipts by hand.
 
 ## Evidence and reading
 
-Use [preferred-text selection](filing-and-reading.md#select-and-search) for local
-reading and discovery. Search spelling variants, abbreviations, similar terms,
+For a new bundle, start with `readings.txt` and the preferred `reading.md` links;
+`pages.md` identifies mapped candidates separately when accepted text lacks page
+boundaries. Use [preferred-text selection](filing-and-reading.md#select-and-search)
+for existing legacy folders. Search spelling variants, abbreviations, similar terms,
 and OCR confusions; inspect full passages and adjacent pages rather than relying
 on snippets. Descriptions and questions in notes are not source wording. Repeated
 exports or related captures are not independent corroboration.

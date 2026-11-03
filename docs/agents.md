@@ -1,7 +1,8 @@
 # Manager, worker, and reviewer protocol
 
 Agents operate this file-based CLI through their existing harness. The package
-has no embedded agent loop, model requirement, OpenAI SDK, or API key. One lead
+has no embedded agent loop, OpenAI SDK, or API key. Compatibility commands need
+no model weights; the optional conversion route uses explicit local weights. One lead
 keeps ownership of the user's request, shared records, integration, and final
 claims. Narrow helpers improve throughput only when their coordination and
 verification cost is justified.
@@ -107,3 +108,15 @@ Return exact source/derivative paths and locators, commands, receipt/checkpoint,
 verified counts/hashes, actual review spans, gaps, any open-document continuity,
 pending filing, and the next action. Link retained evidence rather than pasting
 whole sources. The lead retains responsibility for the final result.
+
+## Conversion candidate work orders
+
+For the [conversion candidate](conversion.md), pass the frozen folder/plan and
+separate destination, explicit local model path, permitted exact-path fetches and
+retry budget. Planning is metadata-only and does not authorize execution. One
+writer owns each bundle and its sibling work directory; the consolidated runner
+respects ready/deferred scope and prerequisites. Review relocated bundle links,
+all expected units, hashes and stored image decoding. Report accepted legacy
+readings separately from new mapped candidates, recognition warnings separately
+from mechanical completion, and actual tests separately from planned checks.
+Neither a successful command nor reviewer agreement establishes OCR accuracy.

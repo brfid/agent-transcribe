@@ -3,6 +3,7 @@
 import argparse
 from collections import deque
 import itertools
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -111,6 +112,69 @@ def check_selection(args):
     return result
 
 
+def _conversion_selection(args):
+    """Pin selection controls independently from the fixed discovered list."""
+    from .folder_intake import _absolute, _control
+    selected = {"recursive": args.recursive,
+                "sources_file": str(_absolute(args.sources_file)) if args.sources_file else None,
+                "exclude": list(args.exclude),
+                "reuse_from": [str(_absolute(p)) for p in args.reuse_from]}
+    if args.sources_file:
+        selected["sources_file_sha256"] = hashlib.sha256(_control(Path(args.sources_file))).hexdigest()
+    return selected
+
+
+def conversion_selection(args):
+    from .common import IntegrityError
+    from .folder_intake import build_folder_plan, _absolute
+    selection = _conversion_selection(args)
+    output, root = _absolute(args.output), _absolute(args.folder)
+    ledger = output / "conversion.json"
+    if ledger.exists():
+        if ledger.is_symlink():
+            raise IntegrityError("Symlink conversion receipt requires inspection")
+        receipt = json.loads(ledger.read_text(encoding="utf-8"))
+        if not isinstance(receipt, dict) or not isinstance(receipt.get("specification"), dict):
+            raise IntegrityError("Malformed conversion receipt")
+        spec = receipt["specification"]
+        if not isinstance(spec.get("sources"), list):
+            raise IntegrityError("Malformed frozen source list")
+        if receipt.get("kind") != "docling-folder" or receipt.get("schema") != 1:
+            raise IntegrityError("Unsupported conversion receipt")
+        if spec.get("source_root") != str(root) or spec.get("selection", {}) != selection:
+            raise IntegrityError("Frozen selection controls differ; preserve this bundle and inspect the command")
+        return {"kind": "docling-folder", "schema": 1, "source_root": spec["source_root"],
+                "output": str(output), "sources": spec["sources"], "selection": selection,
+                "exclusions": receipt.get("plan_exclusions", []), "issues": []}
+    plan = build_folder_plan(args.folder, args.output, recursive=args.recursive,
+                             sources_file=args.sources_file, exclude=args.exclude, reuse_from=args.reuse_from)
+    plan["selection"] = selection
+    return plan
+
+
+def _conversion_options(args):
+    from .docling_backend import BackendOptions
+    return BackendOptions(artifacts_path=str(Path(args.artifacts_path).resolve()) if args.artifacts_path else None,
+                          rotate_clockwise=args.rotate_clockwise, raster_images_scale=args.raster_images_scale)
+
+
+def archive_selection(args):
+    from .folder_intake import build_archive_plan, write_archive_plan, _control
+    bindings, exclusions = None, list(args.exclude)
+    if args.bindings:
+        data = json.loads(_control(Path(args.bindings)))
+        if isinstance(data, list):
+            bindings = data
+        elif isinstance(data, dict) and isinstance(data.get("bindings"), list):
+            bindings = data["bindings"]
+            exclusions = list(data.get("exclusions", [])) + exclusions
+        else:
+            raise ValueError("Bindings must be a list or an object containing a bindings list")
+    plan = build_archive_plan(args.root, bindings=bindings, exclusions=exclusions)
+    files = write_archive_plan(plan, args.output)
+    return {**plan, "plan_files": files, "execution_authorized": False}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="agent-transcribe", description=__doc__)
     parser.add_argument("--version", action="version", version=__version__)
@@ -157,14 +221,69 @@ def main(argv=None):
     reading.add_argument("--limit", type=bounded_integer(1, 1000), default=20, help="Maximum matching lines; default 20")
     reading.add_argument("--context", type=bounded_integer(0, 20), default=2, help="Lines before/after a match; default 2")
     reading.add_argument("--fetch", action="store_true", help="Fetch only selected controls and text; no scan/image/audio payloads")
+    convert = sub.add_parser("convert", help="Convert a frozen folder or saved archive plan into portable local bundles")
+    convert.add_argument("folder", nargs="?", help="Original folder; nonrecursive unless requested")
+    convert.add_argument("--output", help="Separate derivative bundle (required for a folder)")
+    convert.add_argument("--recursive", action="store_true")
+    convert.add_argument("--sources-file", help="Ordered exact source paths instead of discovery")
+    convert.add_argument("--reuse-from", action="append", default=[], help="Accepted legacy/portable reading root; repeatable")
+    convert.add_argument("--exclude", action="append", default=[], help="Relative excluded path; repeatable")
+    convert.add_argument("--fetch", action="store_true", help="Fetch only exact selected inputs with icmat")
+    convert.add_argument("--plan", action="store_true", help="Print metadata-only frozen folder plan; no models, fetch or conversion")
+    convert.add_argument("--plan-file", help="Execute only ready jobs in a saved consolidated archive plan")
+    convert.add_argument("--retry-failed", action="store_true", help="Additional bounded attempts; retain accepted outputs")
+    convert.add_argument("--use-pinned-notes", action="store_true", help="On resume, retain the verified intake-pinned document note snapshot")
+    convert.add_argument("--artifacts-path", help="Explicit previously downloaded Docling model directory")
+    convert.add_argument("--raster-images-scale", type=float, help="Opt-in native image/TIFF page and picture export scale; default retains scale 3; PDFs unchanged")
+    convert.add_argument("--rotate-clockwise", type=int, choices=(0, 90, 180, 270), default=0)
+
+    plan = sub.add_parser("plan", help="Save metadata-only consolidated archive selection; execution is separate")
+    plan.add_argument("root")
+    plan.add_argument("--output", required=True, help="Saved JSON plan; readable .md is written beside it")
+    plan.add_argument("--bindings", help="JSON collection bindings list, or object with bindings and exclusions")
+    plan.add_argument("--exclude", action="append", default=[])
+
+    verify = sub.add_parser("verify", help="Verify a portable conversion bundle, including stored assets")
+    verify.add_argument("bundle")
     args = parser.parse_args(argv)
+    if args.mode == "convert":
+        if args.plan_file:
+            if args.folder or args.output or args.recursive or args.sources_file or args.reuse_from or args.exclude or args.plan:
+                parser.error("--plan-file cannot combine with folder selection, --output or --plan")
+        elif not args.folder or not args.output:
+            parser.error("convert requires FOLDER --output DEST, or --plan-file PATH")
+        if args.plan and (args.fetch or args.retry_failed or args.artifacts_path or args.rotate_clockwise or args.use_pinned_notes or args.raster_images_scale is not None):
+            parser.error("--plan is metadata-only; omit --fetch, --retry-failed and conversion settings")
     if args.mode == "reading":
         if not args.document and not args.job:
             parser.error("reading requires at least one --document or --job")
         if any(not query.strip() for query in args.query):
             parser.error("--query must contain a non-whitespace literal term")
     try:
-        if args.mode == "scan":
+        if args.mode == "plan":
+            result = archive_selection(args)
+            status = 0
+        elif args.mode == "verify":
+            from .portable import verify_bundle
+            result = verify_bundle(args.bundle)
+            status = result["exit_code"]
+        elif args.mode == "convert":
+            if args.plan_file:
+                from .conversion import run_archive_plan
+                result = run_archive_plan(args.plan_file, options=_conversion_options(args),
+                                          fetch_inputs=args.fetch, retry_failed=args.retry_failed,
+                                          use_pinned_notes=args.use_pinned_notes)
+            else:
+                selected = conversion_selection(args)
+                if args.plan:
+                    result = selected
+                else:
+                    from .conversion import convert_folder
+                    result = convert_folder(selected, options=_conversion_options(args),
+                                            fetch_inputs=args.fetch, retry_failed=args.retry_failed,
+                                            use_pinned_notes=args.use_pinned_notes)
+            status = result.get("exit_code", 0)
+        elif args.mode == "scan":
             result = scans.process(args)
             status = 0 if result["extraction_complete"] else 2
         elif args.mode == "file":

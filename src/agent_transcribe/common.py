@@ -47,12 +47,26 @@ def run(args, timeout=300, *, check=True, env=None):
     return subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
 
 
+def file_record(path):
+    """Record a complete stable regular file; never fetch or accept a short read."""
+    import stat
+    path=Path(path)
+    before=path.lstat()
+    if not stat.S_ISREG(before.st_mode) or getattr(before,'st_flags',0)&0x40000000:
+        raise IntegrityError('Hash source is nonregular or dataless: '+str(path))
+    h=hashlib.sha256();count=0
+    with path.open('rb') as stream:
+        for block in iter(lambda:stream.read(1024*1024),b''):
+            count+=len(block);h.update(block)
+    after=path.lstat()
+    identity=lambda v:(v.st_dev,v.st_ino,v.st_size,v.st_mtime_ns,v.st_ctime_ns)
+    if identity(before)!=identity(after) or getattr(after,'st_flags',0)&0x40000000 or count!=before.st_size:
+        raise IntegrityError('Hash source changed or returned a short read: '+str(path))
+    return {'size':before.st_size,'sha256':h.hexdigest()}
+
+
 def checksum(path):
-    h = hashlib.sha256()
-    with Path(path).open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            h.update(block)
-    return h.hexdigest()
+    return file_record(path)['sha256']
 
 
 def atomic(path, data, *, replace=True):
