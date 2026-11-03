@@ -240,11 +240,12 @@ class ConversionResumeTests(unittest.TestCase):
         moved = self.base / 'relocated'
         self.output.rename(moved)
         self.root.rename(self.base / 'hidden-source')
+        previous_directory = Path.cwd()
         os.chdir(self.base)
         try:
             self.assertEqual(verify_bundle(moved)['exit_code'], 0)
         finally:
-            os.chdir('/private/tmp')
+            os.chdir(previous_directory)
 
     def test_root_views_publication_interrupt_replays_pinned_names(self):
         plan = self.plan()

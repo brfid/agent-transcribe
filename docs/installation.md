@@ -36,6 +36,12 @@ for an editable install. To use a normal installation in your own environment:
 python3 -m pip install '/path/to/agent-transcribe[images]'
 ```
 
+For a repeatable setup, record the tested Git commit (`git rev-parse HEAD`),
+`agent-transcribe --version`, Python and external-tool versions in the archive's
+run record. Use that commit on another machine and validate it with synthetic
+inputs before updating an existing workflow. Keep the source checkout and its
+local changes intact when updating an editable installation.
+
 From an uninstalled checkout, `python3 process.py ...` or
 `PYTHONPATH=src python3 -m agent_transcribe ...` uses the same commands. Install
 Pillow in that interpreter when needed.
@@ -93,7 +99,7 @@ without broadening source scope.
 
 ## Conversion candidate
 
-The candidate uses a **separate environment and launcher**. The legacy installer
+The candidate uses a **separate environment and launcher**. The baseline installer
 above remains available. Python 3.11 is the tested runtime; use that version for
 the released dependency lock. Other Python/platform combinations need their own
 validation. `requirements-convert.lock` pins and hashes all 104 Python packages,

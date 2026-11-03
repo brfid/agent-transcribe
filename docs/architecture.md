@@ -25,8 +25,9 @@ embedded agent loop or model SDK.
 ## Data flow
 
 Explicit selection -> exact-path intake/hash -> reuse/native text/OCR ->
-checkpointed extraction -> explicit assignments -> checked named copies and
-preferred exports -> reading/search. Later reading changes use a pinned
+checkpointed extraction -> reading/search over selected jobs. Optional explicit
+assignments add checked named copies and preferred exports; filed preferred text
+takes precedence over job text. Later filed-reading changes use a pinned
 reconciliation recipe. Filing reuses adequate text rather than rerunning OCR.
 
 Document READMEs own descriptive evidence and source membership. Hidden receipts
@@ -72,6 +73,6 @@ migration or deletion is performed. Docling owns layout, tables, picture content
 and its native document model; the adapter owns original identity, accounting,
 recovery, portability and publication. Native IDs stay distinct across range
 parts. Coverage, conversion, publication and recognition are separate claims.
-The base/legacy CLI imports no model runtime on unrelated paths. See
+The baseline and filing commands import no model runtime. See
 [conversion](conversion.md) for execution, recovery and limits, and
 [installation](installation.md#conversion-candidate) for the isolated runtime.

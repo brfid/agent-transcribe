@@ -1,19 +1,20 @@
 # Extracting scan text
 
-This guide documents the accepted compatibility `scan` path. Use the
-[conversion candidate](conversion.md) for new folder/plan conversion with
-automatic bounded recovery. Archive records own the exact authorized scope
-for either route.
+Use `scan` for a lightweight baseline text job over an exact selected source
+set. The optional [conversion candidate](conversion.md) instead creates full
+portable bundles with page/frame assets and structured exports. Archive records
+own the exact authorized scope for either route.
 
 `scan` extracts only an explicit ordered source set. It does not identify or file
-documents. Follow the [workflow](workflow.md) for the complete processing request.
-Use a separate derivative folder; keep originals intact.
+documents; filing is optional. Follow the [workflow](workflow.md) for baseline
+setup, finite attempt policy and completion. Use a separate derivative folder;
+keep originals intact.
 
 ```sh
 agent-transcribe scan \
   --sources-file '/archive/batch-inputs/ordered-paths.txt' \
   --source-root '/archive/originals' \
-  --output '/archive/organized/Needs review/Selected range' \
+  --output '/archive/jobs/baseline-001' \
   --fetch --best-effort
 ```
 
@@ -56,7 +57,19 @@ Ordinary discovery omits `--pdf`. That option adds per-source PDFs and assembled
 derivatives, not replacements for original copies. Native TXT and DOCX should
 run without `--pdf`. DOCX covers main-body paragraphs/tables with paragraph
 locators; headers, notes, comments, and embedded images need separate review.
-Unsupported inputs become explicit failures under best-effort extraction.
+TXT is decoded as UTF-8 (optional BOM); other encodings need an explicitly
+chosen preserved derivative or remain a gap. Image filenames are locators, not
+invented document pages. PDF physical-page delimiters are checked against
+`pdfinfo`; this does not establish text completeness within a page.
+
+The scan route accepts only TIFFs with one verified frame and valid inspected
+frame metadata. Multipage TIFFs and unreadable/unknown frame totals fail closed,
+even for reuse or without rotation. The receipt records expected frame IDs where
+known and leaves them as gaps; older text is preserved without a new frame-coverage
+claim. Choose separately authorized frame-aware conversion for those sources, or
+close the baseline with explicit TIFF exceptions. Do not flatten a TIFF to its
+first frame and call the original covered. Unsupported inputs become explicit
+failures under best-effort extraction.
 
 ## Reuse before OCR
 
@@ -85,8 +98,8 @@ hashes are required; changed or missing selected bytes stop reuse. For example:
 agent-transcribe scan \
   --source '/archive/originals/Box 2/IMG_1001.jpg' \
   --source-root '/archive/originals' \
-  --reuse-index '/archive/organized/Needs review/Selected range/.processing.json' \
-  --output '/archive/organized/Selected subset extraction' --fetch
+  --reuse-index '/archive/jobs/baseline-001/.processing.json' \
+  --output '/archive/jobs/selected-subset' --fetch
 ```
 
 A prior receipt can supply an exact subset without another extraction or catalog.
@@ -115,7 +128,7 @@ or sparse page, make one deliberate variant in a fresh output folder:
 agent-transcribe scan \
   --source '/archive/originals/Box 2/IMG_1001.jpg' \
   --source-root '/archive/originals' \
-  --output '/archive/organized/Needs review/IMG_1001 rotated retry' --fetch \
+  --output '/archive/jobs/IMG_1001-rotated-retry' --fetch \
   --rotate-clockwise 90 --psm 6
 ```
 

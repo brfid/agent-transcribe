@@ -1,8 +1,10 @@
 # Filing, checking, and reading
 
 The [workflow](workflow.md) owns evidence and source selection. These commands
-reproduce explicit choices: `file` publishes, `check` verifies, and `reading`
-selects notes/preferred text. No command identifies documents or expands scope.
+reproduce explicit choices: `reading` selects notes/preferred text, `file`
+publishes optional descriptive copies, and `check` verifies filed work. Baseline
+scan jobs are readable without filing. No command identifies documents or expands
+scope. For the setup-to-closeout sequence, use the [workflow](workflow.md).
 
 ## Filing assignments
 
@@ -135,11 +137,26 @@ metadata; it does not fetch or hash image payloads. No OCR tools or model are
 needed. Apply the [workflow evidence standard](workflow.md#evidence-and-reading)
 when using the results for research.
 
-For pending filing add `--job '/archive/organized/Needs review/Selected range'`
-explicitly. Successful per-source extracts remain readable while blanks,
-failures, and unavailable originals remain gaps. Filed preferred text supersedes
+For a baseline scan job, select it directly; no filed document is required:
+
+```sh
+agent-transcribe reading \
+  --job '/archive/jobs/baseline-001' \
+  --query 'planning' --query 'plan'
+```
+
+Repeat `--job` for the chosen jobs; combine it with `--document` when appropriate.
+Without queries, inspect selected text paths and coverage before searching.
+Successful per-source extracts remain readable while blanks, failures and
+unavailable originals remain gaps. This selection is usable as the baseline
+reading route, whether or not later filing is planned. Filed preferred text supersedes
 the same original's raw-job text. Ambiguous unfiled variants need an explicit
 choice. Results are disposable selections, not another editable catalog.
+
+The result's `complete` flag describes recorded selected-text gaps, not a fresh
+original-access or physical-unit audit. Reading carries forward saved TIFF frame
+gaps but does not create missing inventories. Older receipts without page/frame
+metadata remain unverified for that coverage until separately checked.
 
 Gaps/discrepancies return `2` with valid bounded results; integrity/input errors
 can stop with `1`. Reading output describes the selected files and terms, not

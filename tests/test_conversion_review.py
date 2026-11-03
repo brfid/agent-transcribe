@@ -12,7 +12,7 @@ from agent_transcribe.common import checksum
 
 class ReviewRegressions(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(dir='/private/tmp')
+        self.tmp = tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())
         self.addCleanup(self.tmp.cleanup)
         self.base = Path(self.tmp.name)
 
@@ -91,7 +91,7 @@ class ReviewRegressions(unittest.TestCase):
 
 class RecoveryReviewRegressions(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory(dir='/private/tmp');self.addCleanup(self.tmp.cleanup)
+        self.tmp=tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve());self.addCleanup(self.tmp.cleanup)
         self.base=Path(self.tmp.name)
 
     def test_corrupt_jpeg_decode_is_content_gap_and_budget_finite(self):
@@ -138,7 +138,7 @@ class RecoveryReviewRegressions(unittest.TestCase):
 class MalformedImageVerification(unittest.TestCase):
     def test_broken_tiff_directory_is_source_gap_but_derivative_failure(self):
         from PIL import Image
-        with tempfile.TemporaryDirectory(dir='/private/tmp') as temp:
+        with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve()) as temp:
             root=Path(temp)/'bundle';original=root/'Originals'/'broken.tiff'
             original.parent.mkdir(parents=True)
             frame=Image.new('RGB',(10,10),'white')

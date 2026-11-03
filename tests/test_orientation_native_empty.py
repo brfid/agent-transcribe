@@ -8,6 +8,7 @@ from test_conversion_recovery import Backend,frames,result
 from agent_transcribe.recovery import recover_range
 from agent_transcribe.portable import export_part
 
+@unittest.skipIf(helpers.DoclingDocument is None, "Pinned Docling extra is not installed")
 class OrientationNativeEmpty(unittest.TestCase):
     def run_case(self, root, readings):
         helper=helpers.PlaceholderTests();source=root/"frames.tiff";frames(source)

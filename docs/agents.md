@@ -1,7 +1,7 @@
 # Manager, worker, and reviewer protocol
 
 Agents operate this file-based CLI through their existing harness. The package
-has no embedded agent loop, OpenAI SDK, or API key. Compatibility commands need
+has no embedded agent loop, OpenAI SDK, or API key. Baseline and filing commands need
 no model weights; the optional conversion route uses explicit local weights. One lead
 keeps ownership of the user's request, shared records, integration, and final
 claims. Narrow helpers improve throughput only when their coordination and

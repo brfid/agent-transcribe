@@ -23,7 +23,7 @@ except ImportError:
 @unittest.skipIf(DoclingDocument is None, "Pinned Docling integration extra is not installed")
 class Portable(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
+        self.temp = tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
         self.root = self.base / "bundle original # café"

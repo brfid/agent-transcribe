@@ -394,6 +394,9 @@ fails; opt-in partial selection returns errors alongside only validated document
             _regular(receipt)
             data = json.loads(receipt.read_text())
             candidates, missing, accepted, superseded = [], [], [], 0
+            tiff_safety = data.get("tiff_safety", {})
+            if not isinstance(tiff_safety, dict):
+                raise IntegrityError("Malformed TIFF frame coverage table: " + str(receipt))
             for key, original, step_key, relative in receipt_sources(receipt, data):
                 identity = str(original)
                 if identity in seen_sources:
@@ -402,9 +405,21 @@ fails; opt-in partial selection returns errors alongside only validated document
                     superseded += 1
                     continue
                 step = data.get("steps", {}).get(step_key, {})
+                inventory = tiff_safety.get(key)
+                if key in tiff_safety and not isinstance(inventory, dict):
+                    raise IntegrityError("Malformed TIFF frame coverage: " + identity)
+                if (inventory is not None and "coverage_complete" in inventory
+                        and type(inventory["coverage_complete"]) is not bool):
+                    raise IntegrityError("Malformed TIFF frame completion flag: " + identity)
+                frame_gap = inventory is not None and not inventory.get("coverage_complete", False)
+                if frame_gap:
+                    missing.append({"job": str(folder), "source": identity, "kind": "tiff_frame_coverage_gap",
+                                    "reason": "Saved TIFF frame coverage is incomplete or unknown; source-level text is not verified frame-mapped text",
+                                    "tiff_frames": inventory})
                 if step.get("status") != "done" or relative not in step.get("outputs", {}):
-                    missing.append({"job": str(folder), "source": identity, "kind": "unavailable_text",
-                                    "reason": data.get("intake_failures", {}).get(key, {}).get("error") or step.get("error") or "No completed source extract"})
+                    if not frame_gap:
+                        missing.append({"job": str(folder), "source": identity, "kind": "unavailable_text",
+                                        "reason": data.get("intake_failures", {}).get(key, {}).get("error") or step.get("error") or "No completed source extract"})
                     continue
                 path = _relative(folder, relative)
                 _verify(path, step["outputs"][relative])

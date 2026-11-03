@@ -1,167 +1,193 @@
-# Processing and descriptive filing workflow
+# Searchable archive workflow
 
-The goal is best-effort searchable text with stable original/image/PDF-page
-locators, preserved readings, and explicit gaps. An LLM can discover and read it
-with ordinary local files and search tools. Discovery text is not a verified
-quotation source.
+The baseline is a finite set of preserved originals, browsing links and preferred
+search text, with explicit exceptions. Ordinary local files and search tools are
+sufficient. Detailed identification, descriptive filing and portable Docling
+bundles are optional improvements; they do not have to cover the whole archive
+before the baseline can finish. Discovery text is not a verified quotation source.
 
-The archive's local instructions and collection records control authorization,
-priorities, destinations, naming, and restart points. This guide supplies the
-reusable sequence. An authorized scan-processing batch includes descriptive
-filing in the same run unless the user explicitly requests a narrower task.
-Availability of this workflow does not authorize processing another collection.
+Archive instructions and collection records own authorization, source scope,
+priorities, destinations and restart points. This guide is the reusable sequence,
+not permission to process another collection. Existing local requirements and
+accepted readings remain authoritative.
 
 ## Choose the route
 
-Use the local [conversion candidate](conversion.md) for new folder conversion:
-metadata-only selection, then authorized `convert`, followed by `verify` on the
-portable bundle. It handles provisional organization, page/frame assets,
-structured exports, bounded recovery and publication without a separate manual
-assignment recipe. An existing accepted reading stays preferred when its
-hash-pinned provenance is imported with `--reuse-from`.
+- **Browse/search first:** reuse existing native or accepted text and existing
+  collection/document links. `reading` selects explicitly named filed documents
+  and/or scan jobs without fetching image payloads.
+- **Fill eligible text gaps:** `scan` extracts an exact ordered source set into a
+  separate job. It supports native TXT/DOCX/PDF text and local image/PDF OCR;
+  no filing or copied-original bundle is required. Check its
+  [format and TIFF limits](processing.md#outputs-and-coverage) before selection.
+- **Optional descriptive filing:** `file` publishes reviewed assignments, named
+  original copies and preferred exports; `check` verifies them. Detailed titles,
+  dates, groupings and topic routes can be developed selectively.
+- **Optional portable conversion:** the isolated [conversion candidate](conversion.md)
+  supplies copied originals, physical page/frame assets, structured Docling
+  exports, bounded recovery and bundle verification. Use it when that contract is
+  needed, including separately authorized frame-aware TIFF work. Accepted readings
+  stay preferred when imported with hash-pinned `--reuse-from` provenance.
 
-Use `scan`, `file`, `check`, `reading` and `reconcile` for existing accepted
-legacy work and explicitly requested compatibility tasks. Keep accepted source
-membership and readings intact. Neither installation nor planning authorizes
-source migration, deletion or archive-wide execution. The consolidated runner
-executes only the exact sources of ready jobs and respects prerequisites.
+Neither setup nor planning authorizes archive-wide execution, migration or deletion.
 
 ## Declare and prepare
 
 Read the archive root instructions/index, then the selected collection status,
-plans, READMEs, existing indexes/manifests, and review queue. Resolve recorded
-pending filing/dependencies before starting a dependent conversion scope.
-For a new collection, record its exact scope, source order,
-separate derivative destination, naming choices, and restart point; link that
-status from the archive root index. Keep source and derivative destinations apart.
+linked plan, READMEs, existing manifests/indexes and review queue. Resolve only
+dependencies of the selected work; unrelated enrichment is not a baseline gate.
+For a new collection, record its exact scope, source order, separate derivative
+destination and restart point in collection records, and link its status from the
+archive index. Reuse those records instead of creating another editable catalog
+or inventing document identifiers.
 
-Declare the purpose, exact ordered source list, derivative destination, stopping
-point, any open-document handoff, and next source before running. A folder plan
-freezes the selected paths; use an exact source list for a
-bounded ordered subset and explicit exclusions for derivatives/context. Select
-whole PDFs for folder conversion. Legacy `scan` has no PDF page-range option;
-a page-limited compatibility task needs existing page text or an explicitly
-recorded range derivative. Reserve time for verification and closeout within
-the original deadline.
+Freeze the release's selected original paths and exclusions. Reconcile them with
+existing source records before claiming whole-folder coverage; later additions
+belong to a later scope. Exclude organized copies, OCR jobs, tools, receipts,
+indexes and other bookkeeping from original-source selection. Keep duplicates,
+enclosures and contextual items with their original relationships and order.
 
-Exclude organized copies, retained jobs, tool directories, hidden/bookkeeping
-files, plans, receipts, and indexes from original-source selection. Metadata
-enumeration is not processing. Do not extend a batch to finish an apparent
-document; carry the open document forward by exact source locators. Inspect the
-open-document handoff and the first new source before deciding continuity.
+Account for every selected source using the existing records: original access,
+preferred text, attempt state, expected native-unit coverage where known, and any
+unsupported/context/provenance disposition. Keep this separate from descriptive
+review and filing. Unknown legacy page/frame counts stay unknown until checked.
+A nonempty text file is not evidence of adequate recognition or complete coverage.
 
-Inventory selected source-relative paths, formats, sizes, readability, and hashes
-when readable. Check free space for originals, temporary OCR, staged outputs, and
-published copies. Fetch only exact selected iCloud paths; unavailable placeholders
-are failures, not processed sources. Preserve original files, capture order,
-metadata, enclosures, contextual images, alternate captures, and duplicates.
+Before execution, declare the exact ordered missing-text set, output job, stopping
+point, capacity allowance and finite retry policy. A reasonable baseline policy is
+one extraction attempt, with a recorded bound on technical resumes and at most one
+chosen OCR variant for a demonstrated problem; choose that policy before running.
+An untouched eligible backlog cannot be closed under a generic gap label. Inspect
+one representative supported extraction and browse/search path when establishing
+the method; repeat only when changed conditions or failures require it.
 
-## Extract and identify
+Check space for selected downloads, temporary OCR and retained outputs. Fetch only
+explicitly authorized exact cloud paths. A path or placeholder proves neither
+readability nor retrievability. Preserve originals, accepted readings, receipts,
+failed attempts and variants; no cleanup or eviction is implied.
 
-Use [convert](conversion.md) for the authorized frozen folder or ready archive
-plan. It retains accepted readings, independently counts/renders physical units,
-and tries its finite local recovery policy automatically. Keep successful text
-and partial views when individual units/sources fail. Report blank text/pages
-and failures separately from completion. `--retry-failed` adds another bounded
-attempt while preserving accepted bytes. For compatibility `scan`, follow its
-[reuse and targeted retry guide](processing.md). Never invent text to fill a gap.
+### Generic starter
 
-Inspect originals for decisive titles, dates, boundaries, continuation evidence,
-and relationships. Separate printed titles from supplied descriptions. Photograph
-or filename dates, declassification stamps, and incidental years are not document
-dates. Unknown dates stay unknown and do not alone prevent grouping. Record the
-actual pages/covers/transitions inspected; machine confidence is not visual review.
+Use existing archive layout and names when present. A new small collection can
+keep controls and derivatives outside originals:
 
-Use a provisional descriptive folder when identification remains uncertain.
-Detailed identification must not block searchable text or filing. Each selected
-source needs an explicit document, context, review, or unavailable disposition.
-A readable original still gets a named copy if recognition failed. Keep repeated
-captures as distinct captures and identify their relationship without presenting
-them as independent corroboration.
+```text
+/archive/
+  README.md                 # collection links, preferred-text routes, exceptions
+  originals/Box 2/           # preserved source files
+  batch-inputs/baseline-001.txt
+  jobs/baseline-001/         # scan outputs and mechanical receipt
+  organized/                # optional descriptive filing
+```
 
-## Publish and check
+The collection's existing status or plan records the frozen scope, retry budget
+and outcomes. The README links it and selected originals/readings/jobs. It need
+not duplicate membership or mechanical receipts.
 
-Conversion publishes a standalone bundle with byte-identical originals, readable
-items, page/frame images, native Docling outputs when available, source maps,
-accepted-reading provenance, and explicit gaps. Existing organization supplies
-browse links; uncertain historical identity stays provisional. A new conversion
-does not require preparing descriptive assignments first. Run `verify BUNDLE`,
-then independently check original identity, expected-unit accounting, links and
-the claimed review scope. Recognition accuracy still requires original inspection.
+After [installation](installation.md#from-source), put only the authorized missing
+sources in the UTF-8 list, one path per line. For example:
 
-### Existing legacy filing
+```text
+/archive/originals/Box 2/IMG_1001.jpg
+/archive/originals/Box 2/report.pdf
+```
 
-For an authorized legacy `file` operation, use the collection's naming convention.
-A generic folder may be
-`Subject or title - Identifier or part - Supported date`; omit unsupported parts.
-New copies use `Description - scan NNNN - Full original filename.ext`, retaining
-the full original filename verbatim at the end, including date/time. The stable
-ordinal is filing position, not physical page number or chronology. Keep capture
-order separate. Appending an earlier capture does not renumber prior copies.
-Preserve original bytes, embedded capture metadata, and filesystem modification
-times in the named copies.
+Run the baseline without optional PDF assembly:
 
-Each document folder's README owns description, full/supplied title evidence,
-date evidence, contents, relationships, original membership/locators, checked
-spans, and open questions. Begin with a short description and reading links.
-Capture metadata and dated batch history belong below the evidence. Browse lists
-link the same document folders rather than creating another physical hierarchy.
-No new catalog or invented document identifiers are needed.
+```sh
+agent-transcribe scan \
+  --sources-file '/archive/batch-inputs/baseline-001.txt' \
+  --source-root '/archive/originals' \
+  --output '/archive/jobs/baseline-001' --best-effort
 
-Use explicit [file assignments](filing-and-reading.md), matching retained text
-exports, and the combined reading. A supported reading order must cover every
-participating source with distinct positions and evidence; otherwise say that
-combined text follows filing order. Keep old flat layouts stable. PDFs retain the
-full byte-identical source copy and one-based physical-page locators; any item or
-range derivative is additional and identifies its exact source pages.
+agent-transcribe reading \
+  --job '/archive/jobs/baseline-001' \
+  --query 'planning' --query 'plan'
+```
 
-Run `check --verify-sources` on the affected legacy document folders.
-Independently verify source
-coverage, hashes/metadata of copies, original filename suffixes, page/source order,
-readable text, gaps, and the claimed review scope. Resolve questions in existing
-review queues and plans when evidence warrants it. Use [reconcile](reconciliation.md)
-for deliberate changes to a filed reading, rather than editing machine text,
-managed membership, or receipts by hand.
+For iCloud inputs, follow [exact-path intake](installation.md#icloud-inputs) and
+add `--fetch`; obtain only the required controls/text for reading. See
+[processing](processing.md) for hash-pinned reuse, PDF OCR fallback and exact
+resume commands. Search accepted filed material with repeated `--document` and
+unfiled text with repeated `--job`; a filed preferred reading takes precedence
+for the same original. No `file` operation is necessary to read a scan job.
 
 ## Evidence and reading
 
-For a new bundle, start with `readings.txt` and the preferred `reading.md` links;
-`pages.md` identifies mapped candidates separately when accepted text lacks page
-boundaries. Use [preferred-text selection](filing-and-reading.md#select-and-search)
-for existing legacy folders. Search spelling variants, abbreviations, similar terms,
-and OCR confusions; inspect full passages and adjacent pages rather than relying
-on snippets. Descriptions and questions in notes are not source wording. Repeated
-exports or related captures are not independent corroboration.
+Search spelling variants, abbreviations and OCR confusions, then read full
+passages and adjacent material. Open the actual selected original at its recorded
+locator for decisive wording, names, numbers, dates and historical claims. Verify
+representative tasks from finding a passage through opening that source and
+adjacent material; state exactly which formats and spans were inspected. Sampling
+and successful commands do not establish accuracy for uninspected sources.
 
-Cite original image filenames, or PDF filenames plus one-based physical pages;
-add printed page labels only when established. Distinguish machine readings,
-contextual interpretation, and visually checked wording. Inspect decisive originals
-before quoting or relying on consequential names, numbers, or historical claims.
-Retain unknown metadata, adverse evidence, and unresolved readings. A failed query
-establishes only that the stated terms did not match the selected readable files;
-an unavailable or incompletely read file is not negative evidence.
+Use original image filenames, PDF filenames plus one-based physical pages, or
+native TXT line/DOCX paragraph locators where established. Printed page labels are
+additional evidence, not substitutes for physical pages. Extraction/search result
+line numbers are not automatically original page or line numbers. Never assign
+physical pages to an unmapped legacy reading. Keep machine text, descriptive
+notes, interpretation and visually checked wording distinct. Repeated exports
+and alternate captures are not independent corroboration. A failed query shows
+only that the stated terms did not match the selected readable files.
+
+For portable bundles, start with `readings.txt` and preferred `reading.md` links;
+`pages.md` keeps mapped candidates separate where accepted text lacks boundaries.
+For other readings, use [preferred-text selection](filing-and-reading.md#select-and-search).
+
+## Optional curation and publication
+
+Inspect originals for decisive title/date/boundary evidence before asserting
+identity or grouping. Record actual inspected covers, pages and transitions.
+Filename/capture dates, stamps and incidental years are not document dates;
+unsupported dates stay unknown. Preserve uncertain identity and continuation as
+provisional rather than inventing certainty to finish filing.
+
+Use [filing assignments](filing-and-reading.md) for explicit descriptive folders,
+source copies and preferred text. Each document README owns description,
+source membership/locators, title/date evidence, relationships and review questions;
+browse lists link those same folders. Follow the collection's naming convention.
+Supported reading order needs evidence for every participating source; otherwise
+label combined text as filing order. A full PDF remains byte-identical; a page-range
+derivative is additional and identifies its exact physical source pages.
+
+Run `check --verify-sources` on affected filed folders and independently check
+coverage, hashes/metadata, locators, order, gaps and claimed review spans. Use
+[reconciliation](reconciliation.md) for deliberate filed-reading changes. Portable
+conversion instead follows its own publication and `verify BUNDLE` contract,
+including copied-original identity, expected units, links and stored assets.
+Mechanical integrity does not certify recognition or historical identity.
 
 ## Closeout and resume
 
-Record three separate results:
+A baseline can finish **with enumerated exceptions** when:
 
-1. Discovery extraction: successful source/page text, tool completion, blank
-   pages, unavailable sources, and failures.
-2. Identification/grouping review: inspected spans, evidence, provisional choices,
-   unresolved titles/dates/boundaries, and alternate-capture relationships.
-3. Filing: every selected source accounted for, copy/text publication and checks,
-   explicit gaps, and pending work.
+1. The frozen selected set is reconciled and every source has an explicit outcome.
+   Reused text is distinguished from new attempts, unsupported/context material,
+   unavailable originals and provenance holds. No eligible source remains silently
+   unattempted; deliberate deferrals remain open work.
+2. Every declared attempt has a retained receipt/result. Expected source/page/frame
+   or other native units are checked where supported; unknown counts remain gaps.
+   Report successful, blank, failed, poor-text and unsupported outcomes separately.
+   An unsuccessful attempt closes only as an exception, never successful extraction.
+3. Browsing and preferred-text search have been checked against selected originals,
+   with inspected spans and limitations recorded. All-original availability needs
+   actual access evidence across that scope; unresolved access failures prohibit
+   that claim even when a baseline with exceptions is closed.
+4. Owning collection records retain exact counts/outputs, gaps, measured downloads,
+   new output/peak storage and timings where measured, plus the next maintenance or
+   restart point. Detailed evidence stays in existing provenance/document records;
+   the archive root remains an index.
 
-A best-effort batch can be fully accounted for while retaining recognition or
-access gaps. Copy/integrity/storage/publication failure leaves filing incomplete.
-Do not call retained gaps fully extracted or fully visually reviewed. Update the
-collection status with date, exact source range, verified counts/outputs, gaps,
-and exact next action. Detailed evidence belongs in document READMEs and existing
-provenance records. The archive root remains an index of collections/shared plans.
+Report extraction/access coverage, identification/grouping review and filing as
+separate results. Optional curation, perfect transcription, handwriting, tables
+and Docling enrichment do not reopen a completed declared baseline. New sources
+or chosen improvements become another bounded task.
 
-On interruption, preserve successful outputs, receipts, staging, and history;
-record pending filing and the restart point. Rerun the exact command to resume.
-Independent source failures may continue under best-effort extraction. Changed
-originals/settings, modified/untracked outputs, unsafe paths, conflicting writers,
-or publication failures require inspection. Never delete a receipt or stage to
-force progress.
+On interruption preserve successful outputs, receipts, staging and history;
+record actual pending work and the exact restart point. Repeat the original
+command within the declared retry budget. Independent source failures may
+continue under best-effort extraction. Changed originals/settings, modified or
+untracked outputs, unsafe paths, conflicting writers and storage/publication
+failures require inspection. Never delete evidence to force progress. For
+optional filing/conversion, an integrity or publication failure leaves that
+operation incomplete even when earlier text remains usable.

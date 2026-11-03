@@ -1,41 +1,38 @@
 # Software status
 
-Version 1.1.0rc1 is an unpublished conversion candidate. `convert`, `plan`
-and `verify` provide frozen source selection, pinned local Docling processing,
-bounded recovery, portable bundles and guarded resume. The compatibility
-commands `scan`, `file`, `check`, `reading` and `reconcile` retain existing
-accepted work. See [conversion](docs/conversion.md),
-[installation](docs/installation.md) and the [workflow](docs/workflow.md).
+The supported baseline reuses preferred text and extracts eligible gaps with
+exact-source `scan` jobs. `reading` searches selected jobs without requiring
+filing. Descriptive filing and portable Docling bundles are optional; see the
+[workflow](docs/workflow.md). Version 1.1.0rc1 remains an unpublished candidate.
 
 ## Validation
 
-The pre-checkpoint validation record reports 335 synthetic tests with local
-models, operating-system network access denied and no skips. This records a
-local run; the default CI environment does not install conversion models.
-Additional recorded software checks cover offline dependency installation,
-source/wheel installation, legacy scan/reading, TXT convert/verify, interruption,
-accepted-byte preservation and bundle relocation. These are software checks,
-not evidence of archive recognition quality or source-processing completion.
+On 2 November 2026, Python 3.11 on macOS passed:
+
+- **343 synthetic tests, no skips**, in the pinned conversion environment with
+  local models and operating-system networking blocked.
+- **288 tests passed; 55 optional checks skipped**, in the lightweight image
+  environment without Docling, also with networking blocked.
+
+Checks cover exact scope, reuse, interruption/resume, source preservation,
+preferred-text search, saved TIFF coverage gaps and portable bundle relocation.
+The default CI does not install conversion models. These local results do not
+claim a fresh Linux CI run or recognition accuracy on archival material.
 
 ## Limits
 
-Mechanical verification does not establish recognition accuracy, document
-identity, historical completeness or visual review. Unknown page/frame totals
-remain incomplete. DOCX uses structural locators; accepted text stays preferred,
-and unmapped legacy text does not acquire invented physical pages. Optional
-unavailable rescue tools and irrecoverable bytes remain explicit gaps. Picture-only
-native output does not count as searchable text, while nonempty OCR can still
-omit or misread source content. Multiple readable orientation candidates require
-inspection.
+Search reports recorded selected-text coverage; it does not audit current
+original availability or invent missing page/frame inventories. The lightweight
+scan route rejects multipage or uncountable TIFFs with explicit gaps. Optional
+conversion supplies frame-aware processing. Nonempty OCR can still omit or
+misread text, and accepted unmapped readings do not acquire invented page labels.
+DOCX extraction uses structural locators rather than physical pages.
 
-Storage reservations are conservative estimates, not output-size guarantees.
-Native clone copies are opportunistic; logical reservations do not depend on
-physical sharing. Handled interruptions resume, but untracked `.pending-*` files
-after a hard kill require inspection. Recovery replay evidence is separate from
-portable native JSON. Searchable-PDF generation remains in the compatibility
-scan path. Exact pinned-file materialization requires explicit `--fetch` and
-never relaxes identity checks.
+Storage reservations are estimates. Handled interruptions resume; inconsistent
+or untracked staging requires inspection. Exact pinned-file materialization is
+opt-in and never relaxes identity checks. See [processing](docs/processing.md)
+and [conversion](docs/conversion.md) for their distinct output/recovery contracts.
 
-Source scope, execution authorization, review evidence and restart points belong
-in the owning archive records. Installing software or preparing a plan does not
-authorize processing, migration, deletion or publication.
+Source scope, authorization, review evidence and restart points belong in the
+archive's own records. Software installation does not authorize processing,
+migration, deletion or publication.

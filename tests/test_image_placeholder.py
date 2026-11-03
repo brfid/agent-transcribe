@@ -5,12 +5,18 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from PIL import Image
-from docling_core.types.doc import DoclingDocument, Size, ImageRef, ProvenanceItem, BoundingBox, DocItemLabel
+try:
+    from docling_core.types.doc import DoclingDocument, Size, ImageRef, ProvenanceItem, BoundingBox, DocItemLabel
+except ModuleNotFoundError as exc:
+    if exc.name != "docling_core":
+        raise
+    DoclingDocument = None
 from agent_transcribe.docling_backend import DoclingBackend, BackendOptions, _document_text, native_text_empty
 from agent_transcribe.portable import export_part
 from agent_transcribe.recovery import recover_range
 from test_conversion_recovery import Backend, result, unit, frames
 
+@unittest.skipIf(DoclingDocument is None, "Pinned Docling extra is not installed")
 class PlaceholderTests(unittest.TestCase):
     def document(self, caption=None):
         d=DoclingDocument(name="synthetic figure")

@@ -12,7 +12,7 @@ ARTIFACTS=os.environ.get('AGENT_TRANSCRIBE_TEST_MODELS')
 @unittest.skipUnless(ARTIFACTS,'Set AGENT_TRANSCRIBE_TEST_MODELS for real local model integration')
 class RealPortableIntegration(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory(dir='/private/tmp');self.addCleanup(self.tmp.cleanup)
+        self.tmp=tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve());self.addCleanup(self.tmp.cleanup)
         self.base=Path(self.tmp.name);self.root=self.base/'bundle # café';self.root.mkdir()
 
     def publish(self,path,kind,options,ranges):
